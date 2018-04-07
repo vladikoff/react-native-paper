@@ -10,14 +10,14 @@ type Props = {
 };
 
 type State = {
-  show: boolean,
+  visible: boolean,
 };
 
-class SearchExample extends React.Component<Props, State> {
+class SnackBarExample extends React.Component<Props, State> {
   static title = 'Snack bar';
 
   state = {
-    show: false,
+    visible: false,
   };
 
   render() {
@@ -25,18 +25,23 @@ class SearchExample extends React.Component<Props, State> {
     return (
       <View style={[styles.container, { backgroundColor: background }]}>
         <View>
-          <Button onPress={() => this.setState({ show: true })}>Show</Button>
-          <Button onPress={() => this.setState({ show: false })}>Hide</Button>
+          <Button onPress={() => this.setState({ visible: true })}>Show</Button>
+          <Button onPress={() => this.setState({ visible: false })}>
+            Hide
+          </Button>
         </View>
-        {this.state.show ? (
-          <SnackBar
-            buttonText="Undo"
-            content="Some text. What do you think?"
-            onPress={() => {}}
-            finished={() => this.setState({ show: false })}
-            duration={5000}
-          />
-        ) : null}
+        <SnackBar
+          visible={this.state.visible}
+          content="Some text. What do you think?"
+          onDismiss={() => this.setState({ visible: false })}
+          action={{
+            text: 'Undo',
+            onPress: () => {
+              this.setState({ visible: false });
+            },
+          }}
+          duration={4000}
+        />
       </View>
     );
   }
@@ -50,4 +55,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withTheme(SearchExample);
+export default withTheme(SnackBarExample);

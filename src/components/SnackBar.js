@@ -1,56 +1,55 @@
 // @flow
 import * as React from 'react';
-import { StyleSheet, Animated, PanResponder, Dimensions } from 'react-native';
+import {
+  StyleSheet,
+  Animated,
+  Text,
+  View,
+  TouchableWithoutFeedback,
+} from 'react-native';
 
 import withTheme from '../core/withTheme';
-import Button from './Button';
 import { grey850, white } from '../styles/colors';
 import type { Theme } from '../types';
 
 type Props = {
   /**
-   * Text that will be displayed inside SnackBar
+   * Whether snackbar is currently visible.
+   */
+  visible: boolean,
+  /**
+   * Text that will be displayed inside SnackBar.
    */
   content: string,
   /**
-   * Callback that is called when button is pressed
+   * object that determines button text and callback for button press. It should contains following properties:
+   * `text` - Content of the action button
+   * `onPress` - Callback that is called when action button is pressed
+   * `color` - Color of the action button
    */
-  onPress?: () => mixed,
+  action?: {
+    text: string,
+    onPress: () => mixed,
+    color?: string,
+  },
   /**
-   * Text of the button
-   */
-  buttonText?: string,
-  /**
-   * Duration until snackbar will hide
+   * Duration of the button.
    */
   duration: number,
   /**
-   * Callback that is called when snackbar finishes hiding animation.
+   * Callback called when Snackbar is dismissed, user needs to update the `visible` prop.
    */
-  finished: () => any,
-  /**
-   * Color of text
-   */
-  color?: string,
-  /**
-   * Color of button
-   */
-  buttonColor?: string,
-  /**
-   * Background color of snackbar
-   */
+  onDismiss: () => any,
+  contentColor?: string,
   backgroundColor?: string,
   theme: Theme,
 };
 
 type State = {
-  shown: Animated.Value,
-  position: Animated.ValueXY,
+  opacity: Animated.Value,
+  yPosition: Animated.Value,
 };
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
-const SWIPE_OUT_DURATION = 250;
 const SNACKBAR_ANIMATION_DURATION = 250;
 
 class SnackBar extends React.Component<Props, State> {
@@ -61,134 +60,131 @@ class SnackBar extends React.Component<Props, State> {
   constructor(props) {
     super(props);
 
-    const position = new Animated.ValueXY({ x: 0, y: 48 });
-    this.panResponder = PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: (event, gesture) => {
-        position.setValue({ x: gesture.dx, y: 0 });
-      },
-      onPanResponderRelease: (event, gesture) => {
-        if (gesture.dx > SWIPE_THRESHOLD) {
-          this.forceSwipe('right');
-        } else if (gesture.dx < -SWIPE_THRESHOLD) {
-          this.forceSwipe('left');
-        } else {
-          this.resetPosition();
-        }
-      },
-    });
-
     this.state = {
-      shown: new Animated.Value(0),
-      position,
+      opacity: new Animated.Value(0),
+      yPosition: new Animated.Value(48),
     };
   }
 
-  panResponder: PanResponder;
   hideTimeout: number;
 
   componentDidMount() {
+    if (this.props.visible) {
+      this.show();
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.visible !== this.props.visible) {
+      this.props.visible ? this.show() : this.hide();
+    }
+  }
+
+  show = () => {
     Animated.parallel([
-      Animated.timing(this.state.shown, {
+      Animated.timing(this.state.opacity, {
         toValue: 1,
         duration: SNACKBAR_ANIMATION_DURATION,
         useNativeDriver: true,
       }),
-      Animated.timing(this.state.position, {
-        toValue: { x: 0, y: 0 },
-        duration: SNACKBAR_ANIMATION_DURATION,
+      Animated.timing(this.state.yPosition, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
       }),
     ]).start(() => {
       this.hideTimeout = setTimeout(this.hide, this.props.duration);
     });
-  }
+  };
 
   hide = () => {
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+    }
     Animated.parallel([
-      Animated.timing(this.state.shown, {
+      Animated.timing(this.state.opacity, {
         toValue: 0,
         duration: SNACKBAR_ANIMATION_DURATION,
         useNativeDriver: true,
       }),
-      Animated.timing(this.state.position, {
-        toValue: { x: 0, y: 48 },
-        duration: SNACKBAR_ANIMATION_DURATION,
+      Animated.timing(this.state.yPosition, {
+        toValue: 48,
+        duration: 250,
+        useNativeDriver: true,
       }),
-    ]).start(this.props.finished);
-  };
-
-  forceSwipe = (direction: string) => {
-    clearTimeout(this.hideTimeout);
-    const x = direction === 'right' ? SCREEN_WIDTH : -SCREEN_WIDTH;
-    Animated.timing(this.state.position, {
-      toValue: { x, y: 0 },
-      duration: SWIPE_OUT_DURATION,
-    }).start(this.props.finished);
-  };
-
-  resetPosition = () => {
-    Animated.spring(this.state.position, {
-      toValue: { x: 0, y: 0 },
-    }).start();
+    ]).start(this.props.onDismiss);
   };
 
   render() {
     const {
       content,
-      buttonText,
-      onPress,
+      action,
+      onDismiss,
       theme: { fonts, colors },
-      color,
-      buttonColor,
+      contentColor,
       backgroundColor,
     } = this.props;
 
-    const shouldRenderButton = onPress && buttonText;
-    const buttonMargin = shouldRenderButton ? 8 : 0;
-    const contentRightMargin = shouldRenderButton ? 0 : 24;
+    const buttonRightMargin = action ? 24 : 0;
+    const contentRightMargin = action ? 0 : 24;
 
     return (
       <Animated.View
-        style={[
-          styles.container,
-          {
-            backgroundColor: backgroundColor || grey850,
-            ...this.state.position.getLayout(),
-          },
-        ]}
-        {...this.panResponder.panHandlers}
-      >
-        <Animated.Text
-          style={[
-            styles.content,
+        style={{
+          backgroundColor: backgroundColor || grey850,
+          transform: [
             {
-              fontFamily: fonts.regular,
-              marginRight: contentRightMargin,
-              color: color || white,
-              opacity: this.state.shown.interpolate({
-                inputRange: [0, 0.6, 1],
-                outputRange: [0, 0, 1],
-              }),
+              translateY: this.state.yPosition,
             },
-          ]}
-        >
-          {content}
-        </Animated.Text>
-        {shouldRenderButton ? (
-          <Button
-            color={buttonColor || colors.accent}
-            style={[styles.buttonStyle, { marginHorizontal: buttonMargin }]}
-            onPress={() => {
-              if (this.hideTimeout) {
-                clearTimeout(this.hideTimeout);
-              }
-              this.hide();
-              onPress && onPress();
-            }}
+          ],
+        }}
+      >
+        <TouchableWithoutFeedback onPress={onDismiss}>
+          <Animated.View
+            style={[
+              styles.container,
+              {
+                opacity: this.state.opacity.interpolate({
+                  inputRange: [0, 0.8, 1],
+                  outputRange: [0, 0.2, 1],
+                }),
+              },
+            ]}
           >
-            {buttonText || ''}
-          </Button>
-        ) : null}
+            <Animated.Text
+              style={[
+                styles.content,
+                {
+                  fontFamily: fonts.regular,
+                  marginRight: contentRightMargin,
+                  color: contentColor || white,
+                },
+              ]}
+            >
+              {content}
+            </Animated.Text>
+            {action ? (
+              <View
+                style={{
+                  marginRight: buttonRightMargin,
+                }}
+              >
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    this.hide();
+                    action.onPress();
+                  }}
+                >
+                  <View>
+                    <Text style={{ color: action.color || colors.accent }}>
+                      {action.text}
+                    </Text>
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
+            ) : null}
+          </Animated.View>
+        </TouchableWithoutFeedback>
       </Animated.View>
     );
   }
@@ -207,10 +203,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     flex: 1,
     fontSize: 14,
-  },
-  buttonStyle: {
-    margin: 0,
-    minWidth: 0,
   },
 });
 
