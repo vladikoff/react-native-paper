@@ -33,7 +33,11 @@ type Props = {
     color?: string,
   },
   /**
-   * Time after which onDismiss callback will be called
+   * Time after which onDismiss callback will be called.
+   * It can take following values:
+   * `'indefinite'` - SnackBar will hide only when user tap it.
+   * `'short'` - SnackBar will hide after 2 seconds.
+   * `'long'` - SnackBar will hide after 3.5 seconds.
    */
   duration?: 'indefinite' | 'short' | 'long',
   /**
@@ -51,9 +55,15 @@ type State = {
 };
 
 const SNACKBAR_ANIMATION_DURATION = 250;
+const DURATION_SHORT = 2000;
+const DURATION_LONG = 3500;
 
 /**
  * Snackbar provide brief feedback about an operation through a message at the bottom of the screen.
+ *
+ * <div class="screenshots">
+ *   <img class="medium" src="screenshots/snackbar.gif" />
+ * </div>
  *
  * ## Usage
  * ```js
@@ -99,7 +109,7 @@ const SNACKBAR_ANIMATION_DURATION = 250;
  */
 class SnackBar extends React.Component<Props, State> {
   static defaultProps = {
-    duration: 3500,
+    duration: DURATION_LONG,
   };
 
   constructor(props) {
@@ -142,7 +152,7 @@ class SnackBar extends React.Component<Props, State> {
       if (duration !== 'indefinite') {
         this.hideTimeout = setTimeout(
           this.hide,
-          duration === 'short' ? 2000 : 3500
+          duration === 'short' ? DURATION_SHORT : DURATION_LONG
         );
       }
     });
