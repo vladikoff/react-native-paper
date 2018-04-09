@@ -32,7 +32,7 @@ class SnackBarExample extends React.Component<Props, State> {
         </View>
         <SnackBar
           visible={this.state.visible}
-          content="Some text. What do you think?"
+          content="Put your message here"
           onDismiss={() => this.setState({ visible: false })}
           action={{
             text: 'Undo',
@@ -40,7 +40,6 @@ class SnackBarExample extends React.Component<Props, State> {
               this.setState({ visible: false });
             },
           }}
-          duration={4000}
         />
       </View>
     );

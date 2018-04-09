@@ -24,7 +24,7 @@ type Props = {
   /**
    * object that determines button text and callback for button press. It should contains following properties:
    * `text` - Content of the action button
-   * `onPress` - Callback that is called when action button is pressed
+   * `onPress` - Callback that is called when action button is pressed, user needs to update the `visible` prop.
    * `color` - Color of the action button
    */
   action?: {
@@ -33,9 +33,9 @@ type Props = {
     color?: string,
   },
   /**
-   * Duration of the button.
+   * Time after which onDismiss callback will be called
    */
-  duration: number,
+  duration?: 'indefinite' | 'short' | 'long',
   /**
    * Callback called when Snackbar is dismissed, user needs to update the `visible` prop.
    */
@@ -52,9 +52,54 @@ type State = {
 
 const SNACKBAR_ANIMATION_DURATION = 250;
 
+/**
+ * Snackbar provide brief feedback about an operation through a message at the bottom of the screen.
+ *
+ * ## Usage
+ * ```js
+ * import React from 'react';
+ * import { SnackBar, StyleSheet } from 'react-native-paper';
+ *
+ * export default class MyComponent extends React.Component {
+ *   state = {
+ *     visible: false,
+ *   };
+ *
+ *   render() {
+ *     const { visible } = this.state;
+ *     return (
+ *       <View style={styles.container}>
+ *         <View>
+ *           <Button onPress={() => this.setState({ visible: true })}>Show</Button>
+ *           <Button onPress={() => this.setState({ visible: false })}>Hide</Button>
+ *         </View>
+ *         <SnackBar
+ *           visible={this.state.visible}
+ *           content="Put your message here"
+ *           onDismiss={() => this.setState({ visible: false })}
+ *           action={{
+ *             text: 'Undo',
+ *             onPress: () => {
+ *               this.setState({ visible: false });
+ *             },
+ *           }}
+ *         />
+ *       </View>
+ *     );
+ *   }
+ * }
+ *
+ * const styles = StyleSheet.create({
+ *   container: {
+ *     flex: 1,
+ *     justifyContent: 'space-between',
+ *   },
+ * });
+ * ```
+ */
 class SnackBar extends React.Component<Props, State> {
   static defaultProps = {
-    duration: 3000,
+    duration: 3500,
   };
 
   constructor(props) {
@@ -89,11 +134,17 @@ class SnackBar extends React.Component<Props, State> {
       }),
       Animated.timing(this.state.yPosition, {
         toValue: 0,
-        duration: 250,
+        duration: SNACKBAR_ANIMATION_DURATION,
         useNativeDriver: true,
       }),
     ]).start(() => {
-      this.hideTimeout = setTimeout(this.hide, this.props.duration);
+      const { duration } = this.props;
+      if (duration !== 'indefinite') {
+        this.hideTimeout = setTimeout(
+          this.hide,
+          duration === 'short' ? 2000 : 3500
+        );
+      }
     });
   };
 
@@ -109,7 +160,7 @@ class SnackBar extends React.Component<Props, State> {
       }),
       Animated.timing(this.state.yPosition, {
         toValue: 48,
-        duration: 250,
+        duration: SNACKBAR_ANIMATION_DURATION,
         useNativeDriver: true,
       }),
     ]).start(this.props.onDismiss);
