@@ -22,10 +22,10 @@ type Props = {
    */
   content: string,
   /**
-   * object that determines button text and callback for button press. It should contains following properties:
-   * `text` - Content of the action button
-   * `onPress` - Callback that is called when action button is pressed, user needs to update the `visible` prop.
-   * `color` - Color of the action button
+   * Object that determines button text and callback for button press. It should contains following properties:
+   * - `text` - Content of the action button
+   * - `onPress` - Callback that is called when action button is pressed, user needs to update the `visible` prop.
+   * - `color` - Color of the action button
    */
   action?: {
     text: string,
@@ -35,9 +35,9 @@ type Props = {
   /**
    * Time after which onDismiss callback will be called.
    * It can take following values:
-   * `'indefinite'` - SnackBar will hide only when user tap it.
-   * `'short'` - SnackBar will hide after 2 seconds.
-   * `'long'` - SnackBar will hide after 3.5 seconds.
+   * - `'indefinite'` - SnackBar will hide only when user tap it.
+   * - `'short'` - SnackBar will hide after 2 seconds.
+   * - `'long'` - SnackBar will hide after 3.5 seconds.
    */
   duration?: 'indefinite' | 'short' | 'long',
   /**
