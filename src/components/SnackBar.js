@@ -117,7 +117,7 @@ class Snackbar extends React.Component<Props, State> {
     yPosition: new Animated.Value(48),
   };
 
-  _hideTimeout: number;
+  _hideTimeout: any;
 
   componentDidMount() {
     if (this.props.visible) {
