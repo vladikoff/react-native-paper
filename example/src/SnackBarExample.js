@@ -43,7 +43,7 @@ class SnackBarExample extends React.Component<Props, State> {
               this.setState({ visible: false });
             },
           }}
-          duration="long"
+          duration={Snackbar.DURATION_INDEFINITE}
         >
           <Text>Put your message here</Text>
         </Snackbar>

@@ -35,11 +35,11 @@ type Props = {
   /**
    * The duration for which the Snackbar is shown
    * It can take following values:
-   * - `'indefinite'` - SnackBar will hide only when user tap it.
-   * - `'short'` - SnackBar will hide after 2 seconds.
-   * - `'long'` - SnackBar will hide after 3.5 seconds.
+   * - `Snackbar.DURATION_INDEFINITE` - SnackBar will hide only when user tap it.
+   * - `Snackbar.DURATION_SHORT` - SnackBar will hide after 2 seconds.
+   * - `Snackbar.DURATION_LONG` - SnackBar will hide after 3.5 seconds.
    */
-  duration?: 'indefinite' | 'short' | 'long',
+  duration?: number,
   /**
    * Callback called when Snackbar is dismissed, user needs to update the `visible` prop.
    */
@@ -54,8 +54,6 @@ type State = {
 };
 
 const SNACKBAR_ANIMATION_DURATION = 250;
-const DURATION_SHORT = 2000;
-const DURATION_LONG = 3500;
 
 /**
  * Snackbar provide brief feedback about an operation through a message at the bottom of the screen.
@@ -109,7 +107,7 @@ const DURATION_LONG = 3500;
  */
 class Snackbar extends React.Component<Props, State> {
   static defaultProps = {
-    duration: DURATION_LONG,
+    duration: Snackbar.DURATION_LONG,
   };
 
   state = {
@@ -118,6 +116,10 @@ class Snackbar extends React.Component<Props, State> {
   };
 
   _hideTimeout: any;
+
+  static DURATION_SHORT = 2000;
+  static DURATION_LONG = 3500;
+  static DURATION_INDEFINITE = 0;
 
   componentDidMount() {
     if (this.props.visible) {
@@ -145,11 +147,8 @@ class Snackbar extends React.Component<Props, State> {
       }),
     ]).start(() => {
       const { duration } = this.props;
-      if (duration !== 'indefinite') {
-        this._hideTimeout = setTimeout(
-          this.props.onDismiss,
-          duration === 'short' ? DURATION_SHORT : DURATION_LONG
-        );
+      if (duration !== Snackbar.DURATION_INDEFINITE) {
+        this._hideTimeout = setTimeout(this.props.onDismiss, duration);
       }
     });
   };
