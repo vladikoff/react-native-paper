@@ -133,6 +133,12 @@ class Snackbar extends React.Component<Props, State> {
     }
   }
 
+  componentWillUnmount() {
+    if (this._hideTimeout) {
+      clearTimeout(this._hideTimeout);
+    }
+  }
+
   _show = () => {
     Animated.parallel([
       Animated.timing(this.state.opacity, {
