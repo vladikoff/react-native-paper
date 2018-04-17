@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { SnackBar, Colors, withTheme, Button } from 'react-native-paper';
+import { Snackbar, Colors, withTheme, Button, Text } from 'react-native-paper';
 import type { Theme } from 'react-native-paper/types';
 
 type Props = {
@@ -30,9 +30,8 @@ class SnackBarExample extends React.Component<Props, State> {
             Hide
           </Button>
         </View>
-        <SnackBar
+        <Snackbar
           visible={this.state.visible}
-          content="Put your message here"
           onDismiss={() => this.setState({ visible: false })}
           action={{
             text: 'Undo',
@@ -40,7 +39,10 @@ class SnackBarExample extends React.Component<Props, State> {
               this.setState({ visible: false });
             },
           }}
-        />
+          duration="long"
+        >
+          <Text>Put your message here</Text>
+        </Snackbar>
       </View>
     );
   }

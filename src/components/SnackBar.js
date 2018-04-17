@@ -1,4 +1,4 @@
-// @flow
+/* @flow */
 import * as React from 'react';
 import {
   StyleSheet,
@@ -8,8 +8,9 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
+import ThemedPortal from './Portal/ThemedPortal';
 import withTheme from '../core/withTheme';
-import { grey850, white } from '../styles/colors';
+import { white } from '../styles/colors';
 import type { Theme } from '../types';
 
 type Props = {
@@ -20,7 +21,7 @@ type Props = {
   /**
    * Text that will be displayed inside SnackBar.
    */
-  content: string,
+  children: string | React.Node,
   /**
    * Object that determines button text and callback for button press. It should contains following properties:
    * - `text` - Content of the action button
@@ -30,10 +31,9 @@ type Props = {
   action?: {
     text: string,
     onPress: () => mixed,
-    color?: string,
   },
   /**
-   * Time after which onDismiss callback will be called.
+   * The duration for which the Snackbar is shown
    * It can take following values:
    * - `'indefinite'` - SnackBar will hide only when user tap it.
    * - `'short'` - SnackBar will hide after 2 seconds.
@@ -43,9 +43,8 @@ type Props = {
   /**
    * Callback called when Snackbar is dismissed, user needs to update the `visible` prop.
    */
-  onDismiss: () => any,
-  contentColor?: string,
-  backgroundColor?: string,
+  onDismiss: () => mixed,
+  style?: any,
   theme: Theme,
 };
 
@@ -68,7 +67,7 @@ const DURATION_LONG = 3500;
  * ## Usage
  * ```js
  * import React from 'react';
- * import { SnackBar, StyleSheet } from 'react-native-paper';
+ * import { Snackbar, StyleSheet } from 'react-native-paper';
  *
  * export default class MyComponent extends React.Component {
  *   state = {
@@ -83,9 +82,8 @@ const DURATION_LONG = 3500;
  *           <Button onPress={() => this.setState({ visible: true })}>Show</Button>
  *           <Button onPress={() => this.setState({ visible: false })}>Hide</Button>
  *         </View>
- *         <SnackBar
+ *         <Snackbar
  *           visible={this.state.visible}
- *           content="Put your message here"
  *           onDismiss={() => this.setState({ visible: false })}
  *           action={{
  *             text: 'Undo',
@@ -93,7 +91,9 @@ const DURATION_LONG = 3500;
  *               this.setState({ visible: false });
  *             },
  *           }}
- *         />
+ *         >
+ *           Put your message here
+ *         </Snackbar>
  *       </View>
  *     );
  *   }
@@ -107,35 +107,31 @@ const DURATION_LONG = 3500;
  * });
  * ```
  */
-class SnackBar extends React.Component<Props, State> {
+class Snackbar extends React.Component<Props, State> {
   static defaultProps = {
     duration: DURATION_LONG,
   };
 
-  constructor(props) {
-    super(props);
+  state = {
+    opacity: new Animated.Value(0),
+    yPosition: new Animated.Value(48),
+  };
 
-    this.state = {
-      opacity: new Animated.Value(0),
-      yPosition: new Animated.Value(48),
-    };
-  }
-
-  hideTimeout: number;
+  _hideTimeout: number;
 
   componentDidMount() {
     if (this.props.visible) {
-      this.show();
+      this._show();
     }
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.visible !== this.props.visible) {
-      this.props.visible ? this.show() : this.hide();
+      this.props.visible ? this._show() : this._hide();
     }
   }
 
-  show = () => {
+  _show = () => {
     Animated.parallel([
       Animated.timing(this.state.opacity, {
         toValue: 1,
@@ -150,17 +146,17 @@ class SnackBar extends React.Component<Props, State> {
     ]).start(() => {
       const { duration } = this.props;
       if (duration !== 'indefinite') {
-        this.hideTimeout = setTimeout(
-          this.hide,
+        this._hideTimeout = setTimeout(
+          this.props.onDismiss,
           duration === 'short' ? DURATION_SHORT : DURATION_LONG
         );
       }
     });
   };
 
-  hide = () => {
-    if (this.hideTimeout) {
-      clearTimeout(this.hideTimeout);
+  _hide = () => {
+    if (this._hideTimeout) {
+      clearTimeout(this._hideTimeout);
     }
     Animated.parallel([
       Animated.timing(this.state.opacity, {
@@ -173,98 +169,102 @@ class SnackBar extends React.Component<Props, State> {
         duration: SNACKBAR_ANIMATION_DURATION,
         useNativeDriver: true,
       }),
-    ]).start(this.props.onDismiss);
+    ]).start();
   };
 
   render() {
-    const {
-      content,
-      action,
-      onDismiss,
-      theme: { fonts, colors },
-      contentColor,
-      backgroundColor,
-    } = this.props;
+    const { children, action, onDismiss, theme, style } = this.props;
+
+    const { fonts, colors } = theme;
 
     const buttonRightMargin = action ? 24 : 0;
     const contentRightMargin = action ? 0 : 24;
 
     return (
-      <Animated.View
-        style={{
-          backgroundColor: backgroundColor || grey850,
-          transform: [
+      <ThemedPortal theme={theme}>
+        <Animated.View
+          style={[
+            styles.wrapper,
             {
-              translateY: this.state.yPosition,
-            },
-          ],
-        }}
-      >
-        <TouchableWithoutFeedback onPress={onDismiss}>
-          <Animated.View
-            style={[
-              styles.container,
-              {
-                opacity: this.state.opacity.interpolate({
-                  inputRange: [0, 0.8, 1],
-                  outputRange: [0, 0.2, 1],
-                }),
-              },
-            ]}
-          >
-            <Animated.Text
-              style={[
-                styles.content,
+              transform: [
                 {
-                  fontFamily: fonts.regular,
-                  marginRight: contentRightMargin,
-                  color: contentColor || white,
+                  translateY: this.state.yPosition,
+                },
+              ],
+            },
+            style,
+          ]}
+        >
+          <TouchableWithoutFeedback onPress={onDismiss}>
+            <Animated.View
+              style={[
+                styles.container,
+                {
+                  opacity: this.state.opacity.interpolate({
+                    inputRange: [0, 0.8, 1],
+                    outputRange: [0, 0.2, 1],
+                  }),
                 },
               ]}
             >
-              {content}
-            </Animated.Text>
-            {action ? (
-              <View
-                style={{
-                  marginRight: buttonRightMargin,
-                }}
+              <Text
+                style={[
+                  styles.content,
+                  {
+                    fontFamily: fonts.regular,
+                    marginRight: contentRightMargin,
+                  },
+                ]}
               >
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    this.hide();
-                    action.onPress();
+                {children}
+              </Text>
+              {action ? (
+                <View
+                  style={{
+                    marginRight: buttonRightMargin,
                   }}
                 >
-                  <View>
-                    <Text style={{ color: action.color || colors.accent }}>
-                      {action.text}
-                    </Text>
-                  </View>
-                </TouchableWithoutFeedback>
-              </View>
-            ) : null}
-          </Animated.View>
-        </TouchableWithoutFeedback>
-      </Animated.View>
+                  <TouchableWithoutFeedback
+                    onPress={() => {
+                      action.onPress();
+                      this._hide();
+                    }}
+                  >
+                    <View>
+                      <Text style={{ color: colors.accent }}>
+                        {action.text.toUpperCase()}
+                      </Text>
+                    </View>
+                  </TouchableWithoutFeedback>
+                </View>
+              ) : null}
+            </Animated.View>
+          </TouchableWithoutFeedback>
+        </Animated.View>
+      </ThemedPortal>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    backgroundColor: '#323232',
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+  },
   container: {
-    backgroundColor: grey850,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   content: {
+    color: white,
     marginLeft: 24,
     marginVertical: 14,
     flexWrap: 'wrap',
     flex: 1,
-    fontSize: 14,
   },
 });
 
-export default withTheme(SnackBar);
+export default withTheme(Snackbar);
