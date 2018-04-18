@@ -1,11 +1,10 @@
 /* @flow */
 
 import * as React from 'react';
-import colorModule from 'color';
+import color from 'color';
 import { View, Animated, StyleSheet } from 'react-native';
 import Text from './Typography/Text';
 import withTheme from '../core/withTheme';
-import { black, white } from '../styles/colors';
 import type { Theme } from '../types';
 
 const helperTextHeight = 16;
@@ -92,7 +91,7 @@ class HelperText extends React.Component<Props, State> {
 
   state = {
     errorShown: new Animated.Value(this.props.hasError ? 1 : 0),
-    };
+  };
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.hasError !== this.props.hasError) {
@@ -100,8 +99,8 @@ class HelperText extends React.Component<Props, State> {
         this._animateFocus();
       } else {
         this._animateBlur();
+      }
     }
-  }
   }
 
   _animateFocus = () => {
@@ -119,36 +118,40 @@ class HelperText extends React.Component<Props, State> {
   };
 
   getHelperTextColor(dark: boolean) {
-    return dark
-      ? colorModule(white)
-          .alpha(0.7)
-          .rgb()
-          .string()
-      : colorModule(black)
-          .alpha(0.54)
-          .rgb()
-          .string();
+    return color(this.props.theme.colors.text)
+      .alpha(dark ? 0.7 : 0.54)
+      .rgb()
+      .string();
   }
 
-  renderUnderlineText(text?: string, containerStyle: Object, color: string) {
+  _renderText(text?: string, containerStyle: Object, textColor: string) {
     return (
       text && (
         <Animated.View style={containerStyle}>
-          {text && <Text style={[styles.helperText, { color }]}>{text}</Text>}
+          <Text style={[styles.helperText, { color: textColor }]}>{text}</Text>
         </Animated.View>
       )
     );
   }
 
   render() {
-    const { helperText, hasError, errorText, style, theme, color } = this.props;
+    const {
+      helperText,
+      hasError,
+      errorText,
+      style,
+      theme,
+      color: textColor,
+    } = this.props;
     const { colors, dark } = theme;
     const { errorText: errorTextColor } = colors;
 
     const helperTextColor =
-      color || (hasError && errorTextColor) || this.getHelperTextColor(dark);
+      textColor ||
+      (hasError && errorTextColor) ||
+      this.getHelperTextColor(dark);
 
-    const underlineArea = {
+    const textWrapper = {
       height: Animated.multiply(
         helperTextHeight,
         helperText ? 1 : errorText ? this.state.errorShown : 0
@@ -178,17 +181,9 @@ class HelperText extends React.Component<Props, State> {
     return (
       <View style={style}>
         {helperText || errorText ? (
-          <Animated.View style={underlineArea}>
-            {this.renderUnderlineText(
-              helperText,
-              helperTextContainer,
-              helperTextColor
-            )}
-            {this.renderUnderlineText(
-              errorText,
-              errorTextContainer,
-              errorTextColor
-            )}
+          <Animated.View style={textWrapper}>
+            {this._renderText(helperText, helperTextContainer, helperTextColor)}
+            {this._renderText(errorText, errorTextContainer, errorTextColor)}
           </Animated.View>
         ) : null}
       </View>
