@@ -96,23 +96,23 @@ class HelperText extends React.Component<Props, State> {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.hasError !== this.props.hasError) {
-      (nextProps.hasError ? this._animateFocus : this._animateBlur)(
-        this.state.errorShown
-      );
+      if (nextProps.hasError) {
+        this._animateFocus();
+      } else {
+        this._animateBlur();
     }
   }
   }
 
-
-  _animateFocus = (animatedValue: Animated.Value) => {
-    Animated.timing(animatedValue, {
+  _animateFocus = () => {
+    Animated.timing(this.state.errorShown, {
       toValue: 1,
       duration: 150,
     }).start();
   };
 
-  _animateBlur = (animatedValue: Animated.Value) => {
-    Animated.timing(animatedValue, {
+  _animateBlur = () => {
+    Animated.timing(this.state.errorShown, {
       toValue: 0,
       duration: 180,
     }).start();
