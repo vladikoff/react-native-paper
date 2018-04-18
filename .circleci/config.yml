@@ -85,6 +85,13 @@ jobs:
               - "2f:b4:ed:e1:25:88:5c:4a:03:c2:16:40:56:70:29:29"
         - run: |
             bash .circleci/deploy-docs.sh
+  release:
+      <<: *defaults
+      steps:
+        - attach_workspace:
+            at: ~/react-native-paper
+        - run: |
+            yarn semantic-release
 
 workflows:
   version: 2
@@ -109,6 +116,16 @@ workflows:
       - deploy-docs:
           requires:
             - install-dependencies
+          filters:
+            branches:
+              only: master
+      - release:
+          requires:
+            - install-dependencies
+            - lint-and-flow
+            - unit-tests
+            - build-package
+            - deploy-docs
           filters:
             branches:
               only: master

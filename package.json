@@ -1,6 +1,6 @@
 {
   "name": "react-native-paper",
-  "version": "1.3.0",
+  "version": "0.0.0-development",
   "description": "Material design for React Native",
   "main": "src/index.js",
   "files": [
@@ -25,7 +25,8 @@
     "lint": "eslint .",
     "test": "jest",
     "prepare": "node ./scripts/generate-mappings",
-    "bootstrap": "yarn && yarn --cwd example && yarn --cwd docs"
+    "bootstrap": "yarn && yarn --cwd example && yarn --cwd docs",
+    "semantic-release": "semantic-release"
   },
   "dependencies": {
     "color": "^2.0.1",
@@ -50,7 +51,8 @@
     "react-dom": "16.3.0-alpha.1",
     "react-native": "~0.54.4",
     "react-native-vector-icons": "~4.6.0",
-    "react-test-renderer": "16.3.0-alpha.1"
+    "react-test-renderer": "16.3.0-alpha.1",
+    "semantic-release": "^15.1.7"
   },
   "peerDependencies": {
     "react": "*",
