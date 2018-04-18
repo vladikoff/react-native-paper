@@ -49,6 +49,8 @@ type Props = {
 };
 
 type State = {
+  rendered: boolean,
+  height: number,
   opacity: Animated.Value,
   yPosition: Animated.Value,
 };
@@ -111,8 +113,10 @@ class Snackbar extends React.Component<Props, State> {
   };
 
   state = {
+    rendered: false,
+    height: 0,
     opacity: new Animated.Value(0),
-    yPosition: new Animated.Value(48),
+    yPosition: new Animated.Value(0),
   };
 
   _hideTimeout: any;
@@ -137,6 +141,17 @@ class Snackbar extends React.Component<Props, State> {
     if (this._hideTimeout) {
       clearTimeout(this._hideTimeout);
     }
+  }
+
+  _onLayout({ nativeEvent }) {
+    const {
+      layout: { y },
+    } = nativeEvent;
+    this.setState({
+      height: y,
+      rendered: true,
+      yPosition: new Animated.Value(y),
+    });
   }
 
   _show = () => {
@@ -170,7 +185,7 @@ class Snackbar extends React.Component<Props, State> {
         useNativeDriver: true,
       }),
       Animated.timing(this.state.yPosition, {
-        toValue: 48,
+        toValue: this.state.height,
         duration: SNACKBAR_ANIMATION_DURATION,
         useNativeDriver: true,
       }),
@@ -188,9 +203,11 @@ class Snackbar extends React.Component<Props, State> {
     return (
       <ThemedPortal theme={theme}>
         <Animated.View
+          onLayout={this._onLayout}
           style={[
             styles.wrapper,
             {
+              opacity: this.state.rendered ? 0 : 1,
               transform: [
                 {
                   translateY: this.state.yPosition,
