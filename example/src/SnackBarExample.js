@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Snackbar, Colors, withTheme, Button, Text } from 'react-native-paper';
+import { Snackbar, Colors, withTheme, Button } from 'react-native-paper';
 import type { Theme } from 'react-native-paper/types';
 
 type Props = {
@@ -13,8 +13,8 @@ type State = {
   visible: boolean,
 };
 
-class SnackBarExample extends React.Component<Props, State> {
-  static title = 'Snack bar';
+class SnackbarExample extends React.Component<Props, State> {
+  static title = 'Snackbar';
 
   state = {
     visible: false,
@@ -45,7 +45,7 @@ class SnackBarExample extends React.Component<Props, State> {
           }}
           duration={Snackbar.DURATION_INDEFINITE}
         >
-          <Text>Put your message here</Text>
+          Put your message here
         </Snackbar>
       </View>
     );
@@ -60,4 +60,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withTheme(SnackBarExample);
+export default withTheme(SnackbarExample);

@@ -1,4 +1,5 @@
 /* @flow */
+
 import * as React from 'react';
 import {
   StyleSheet,
@@ -21,12 +22,11 @@ type Props = {
   /**
    * Text that will be displayed inside SnackBar.
    */
-  children: string | React.Node,
+  children: React.Node,
   /**
    * Object that determines button text and callback for button press. It should contains following properties:
    * - `text` - Content of the action button
    * - `onPress` - Callback that is called when action button is pressed, user needs to update the `visible` prop.
-   * - `color` - Color of the action button
    */
   action?: {
     text: string,
@@ -41,7 +41,7 @@ type Props = {
    */
   duration?: number,
   /**
-   * Callback called when Snackbar is dismissed, user needs to update the `visible` prop.
+   * Callback called when Snackbar is dismissed. The `visible` prop needs to be updated when this is called.
    */
   onDismiss: () => mixed,
   style?: any,
@@ -109,7 +109,7 @@ const SNACKBAR_ANIMATION_DURATION = 250;
  */
 class Snackbar extends React.Component<Props, State> {
   static defaultProps = {
-    duration: Snackbar.DURATION_LONG,
+    duration: this.DURATION_LONG,
   };
 
   state = {
@@ -143,16 +143,18 @@ class Snackbar extends React.Component<Props, State> {
     }
   }
 
-  _onLayout({ nativeEvent }) {
+  _onLayout = ({ nativeEvent }) => {
     const {
-      layout: { y },
+      layout: { height },
     } = nativeEvent;
+
     this.setState({
-      height: y,
+      height,
       rendered: true,
-      yPosition: new Animated.Value(y),
     });
-  }
+
+    this.state.yPosition.setValue(height);
+  };
 
   _show = () => {
     Animated.parallel([
@@ -197,17 +199,17 @@ class Snackbar extends React.Component<Props, State> {
 
     const { fonts, colors } = theme;
 
-    const buttonRightMargin = action ? 24 : 0;
+    const buttonMargin = action ? 24 : 0;
     const contentRightMargin = action ? 0 : 24;
 
     return (
-      <ThemedPortal theme={theme}>
+      <ThemedPortal>
         <Animated.View
           onLayout={this._onLayout}
           style={[
             styles.wrapper,
             {
-              opacity: this.state.rendered ? 0 : 1,
+              opacity: this.state.rendered ? 1 : 0,
               transform: [
                 {
                   translateY: this.state.yPosition,
@@ -243,7 +245,7 @@ class Snackbar extends React.Component<Props, State> {
               {action ? (
                 <View
                   style={{
-                    marginRight: buttonRightMargin,
+                    marginHorizontal: buttonMargin,
                   }}
                 >
                   <TouchableWithoutFeedback
