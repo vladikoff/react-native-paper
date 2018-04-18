@@ -13,10 +13,10 @@ import type { Theme } from '../types';
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
 
-const minimizedLabelYOffset = -22;
-const maximizedLabelFontSize = 16;
-const minimizedLabelFontSize = 12;
-const labelWiggleXOffset = 4;
+const MINIMIZED_LABEL_Y_OFFSET = -22;
+const MAXIMIZED_LABEL_FONT_SIZE = 16;
+const MINIMIZED_LABEL_FONT_SIZE = 12;
+const LABEL_WIGGLE_X_OFFSET = 4;
 
 type Props = {
   /**
@@ -267,23 +267,23 @@ class TextInput extends React.Component<Props, State> {
       value && hasError
         ? this.state.errorShown.interpolate({
             inputRange: [0, 0.5, 1],
-            outputRange: [0, labelWiggleXOffset, 0],
+            outputRange: [0, LABEL_WIGGLE_X_OFFSET, 0],
           })
         : 0;
 
     /* Move label to top if value is set */
     const labelTranslateY = value
-      ? minimizedLabelYOffset
+      ? MINIMIZED_LABEL_Y_OFFSET
       : this.state.focused.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, minimizedLabelYOffset],
+          outputRange: [0, MINIMIZED_LABEL_Y_OFFSET],
         });
 
     const labelFontSize = value
-      ? minimizedLabelFontSize
+      ? MINIMIZED_LABEL_FONT_SIZE
       : this.state.focused.interpolate({
           inputRange: [0, 1],
-          outputRange: [maximizedLabelFontSize, minimizedLabelFontSize],
+          outputRange: [MAXIMIZED_LABEL_FONT_SIZE, MINIMIZED_LABEL_FONT_SIZE],
         });
 
     const labelStyle = {
