@@ -29,6 +29,8 @@ export { default as DrawerItem } from './components/DrawerItem';
 export { default as DrawerSection } from './components/DrawerSection';
 export { default as FAB } from './components/FAB';
 export { default as HelperText } from './components/HelperText';
+export { default as ListSection } from './components/ListSection';
+export { default as ListItem } from './components/ListItem';
 export { default as Modal } from './components/Modal';
 export { default as Paper } from './components/Paper';
 export { default as ProgressBar } from './components/ProgressBar/ProgressBar';
