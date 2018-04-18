@@ -90,13 +90,9 @@ class HelperText extends React.Component<Props, State> {
     hasError: false,
   };
 
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      errorShown: new Animated.Value(props.hasError ? 1 : 0),
+  state = {
+    errorShown: new Animated.Value(this.props.hasError ? 1 : 0),
     };
-  }
 
   state: State;
 
