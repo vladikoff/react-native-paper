@@ -34,7 +34,7 @@ type Props = {
   /**
    * Whether to style the TextInput with error style.
    */
-  hasError: boolean,
+  hasError?: boolean,
   /**
    * Callback that is called when the text input's text changes. Changed text is passed as an argument to the callback handler.
    */
