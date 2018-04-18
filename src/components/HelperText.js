@@ -12,12 +12,10 @@ const helperTextHeight = 16;
 
 type Props = {
   /**
-   * @optional
    * Helper text to display.
    */
   helperText?: string,
   /**
-   * @optional
    * Whether to style the TextInput with error style.
    */
   hasError?: boolean,
@@ -27,12 +25,10 @@ type Props = {
    */
   errorText?: string,
   /**
-   * @optional
    * Text color to use.
    */
   color?: string,
   /**
-   * @optional
    * Optional style to apply to the container.
    */
   style?: any,
