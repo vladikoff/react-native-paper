@@ -94,8 +94,6 @@ class HelperText extends React.Component<Props, State> {
     errorShown: new Animated.Value(this.props.hasError ? 1 : 0),
     };
 
-  state: State;
-
   componentWillReceiveProps(nextProps) {
     if (nextProps.hasError !== this.props.hasError) {
       (nextProps.hasError ? this._animateFocus : this._animateBlur)(
@@ -103,16 +101,8 @@ class HelperText extends React.Component<Props, State> {
       );
     }
   }
-
-  componentWillUnmount() {
-    clearTimeout(this._timer);
   }
 
-  _timer: any;
-  _root: any;
-  _setRef: any = (c: Object) => {
-    this._root = c;
-  };
 
   _animateFocus = (animatedValue: Animated.Value) => {
     Animated.timing(animatedValue, {
