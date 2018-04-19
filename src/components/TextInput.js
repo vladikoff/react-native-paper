@@ -74,6 +74,7 @@ type State = {
   focused: Animated.Value,
   errorShown: Animated.Value,
   placeholder: ?string,
+  value: ?string,
 };
 
 /**
@@ -123,17 +124,12 @@ class TextInput extends React.Component<Props, State> {
     multiline: false,
   };
 
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      focused: new Animated.Value(0),
-      errorShown: new Animated.Value(props.hasError ? 1 : 0),
-      placeholder: '',
-    };
-  }
-
-  state: State;
+  state = {
+    focused: new Animated.Value(0),
+    placeholder: '',
+    errorShown: new Animated.Value(this.props.hasError ? 1 : 0),
+    value: this.props.value,
+  };
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.hasError !== this.props.hasError) {
@@ -143,13 +139,16 @@ class TextInput extends React.Component<Props, State> {
     }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
     if (
-      (prevProps.value !== this.props.value ||
-        prevProps.placeholder !== this.props.placeholder) &&
-      this.props.value === ''
+      prevState.value !== this.state.value ||
+      prevProps.placeholder !== this.props.placeholder
     ) {
-      this._setPlaceholder();
+      if (this.state.value) {
+        this._removePlaceholder();
+      } else {
+        this._setPlaceholder();
+      }
     }
   }
 
@@ -207,6 +206,11 @@ class TextInput extends React.Component<Props, State> {
     }
   };
 
+  _handleChangeText = (value: string) => {
+    this.setState({ value });
+    this.props.onChangeText && this.props.onChangeText(value);
+  };
+
   setNativeProps(...args) {
     return this._root.setNativeProps(...args);
   }
@@ -229,7 +233,6 @@ class TextInput extends React.Component<Props, State> {
 
   render() {
     const {
-      value,
       disabled,
       label,
       hasError,
@@ -238,6 +241,7 @@ class TextInput extends React.Component<Props, State> {
       theme,
       ...rest
     } = this.props;
+
     const { colors, fonts } = theme;
     const fontFamily = fonts.regular;
     const {
@@ -264,7 +268,7 @@ class TextInput extends React.Component<Props, State> {
 
     /* Wiggle when error appears and label is minimized */
     const labelTranslateX =
-      value && hasError
+      this.state.value && hasError
         ? this.state.errorShown.interpolate({
             inputRange: [0, 0.5, 1],
             outputRange: [0, LABEL_WIGGLE_X_OFFSET, 0],
@@ -272,14 +276,14 @@ class TextInput extends React.Component<Props, State> {
         : 0;
 
     /* Move label to top if value is set */
-    const labelTranslateY = value
+    const labelTranslateY = this.state.value
       ? MINIMIZED_LABEL_Y_OFFSET
       : this.state.focused.interpolate({
           inputRange: [0, 1],
           outputRange: [0, MINIMIZED_LABEL_Y_OFFSET],
         });
 
-    const labelFontSize = value
+    const labelFontSize = this.state.value
       ? MINIMIZED_LABEL_FONT_SIZE
       : this.state.focused.interpolate({
           inputRange: [0, 1],
@@ -321,8 +325,8 @@ class TextInput extends React.Component<Props, State> {
           ref={c => {
             this._root = c;
           }}
-          value={value}
-          placeholder={this.state.placeholder}
+          onChangeText={this._handleChangeText}
+          placeholder={label ? this.state.placeholder : this.props.placeholder}
           placeholderTextColor={colors.placeholder}
           editable={!disabled}
           selectionColor={labelColor}
@@ -331,7 +335,12 @@ class TextInput extends React.Component<Props, State> {
           underlineColorAndroid="transparent"
           style={[
             styles.input,
-            rest.multiline && styles.multiline,
+            label ? styles.inputWithLabel : styles.inputWithoutLabel,
+            rest.multiline
+              ? label
+                ? styles.multilineWithLabel
+                : styles.multilineWithoutLabel
+              : null,
             {
               color: inputTextColor,
               fontFamily,
@@ -369,22 +378,35 @@ class TextInput extends React.Component<Props, State> {
   }
 }
 
+export default withTheme(TextInput);
+
 const styles = StyleSheet.create({
   placeholder: {
     position: 'absolute',
     left: 0,
-    top: 38,
+    top: 40,
     fontSize: 16,
   },
   input: {
-    minHeight: 64,
-    paddingTop: 20,
     paddingBottom: 0,
     marginTop: 8,
     marginBottom: -4,
+    fontSize: 16,
   },
-  multiline: {
+  inputWithLabel: {
+    paddingTop: 20,
+    minHeight: 64,
+  },
+  inputWithoutLabel: {
+    paddingTop: 0,
+    minHeight: 44,
+  },
+  multilineWithLabel: {
     paddingTop: 30,
+    paddingBottom: 10,
+  },
+  multilineWithoutLabel: {
+    paddingVertical: 10,
   },
   bottomLineContainer: {
     marginBottom: 4,
@@ -401,5 +423,3 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth * 4,
   },
 });
-
-export default withTheme(TextInput);
