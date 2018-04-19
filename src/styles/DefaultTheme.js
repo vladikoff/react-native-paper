@@ -22,10 +22,6 @@ export default {
       .alpha(0.38)
       .rgb()
       .string(),
-    errorText: color(redA400)
-      .alpha(0.87)
-      .rgb()
-      .string(),
   },
   fonts,
 };

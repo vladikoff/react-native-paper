@@ -22,7 +22,6 @@ const DarkTheme: Theme = {
       .alpha(0.38)
       .rgb()
       .string(),
-    errorText: redA400,
   },
 };
 
