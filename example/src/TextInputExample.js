@@ -46,10 +46,11 @@ class TextInputExample extends React.Component<Props, State> {
             onChangeText={errorInputText => this.setState({ errorInputText })}
           />
           <HelperText
-            helperText="Helper text"
-            errorText="Error text"
-            hasError={this.state.errorInputText.length > 3}
-          />
+            type="error"
+            visible={this.state.errorInputText.length > 3}
+          >
+            Error: text too long
+          </HelperText>
         </View>
         <TextInput
           disabled

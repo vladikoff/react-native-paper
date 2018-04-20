@@ -2,35 +2,28 @@
 
 import * as React from 'react';
 import color from 'color';
-import { View, Animated, StyleSheet } from 'react-native';
+import { Animated, StyleSheet } from 'react-native';
 import Text from './Typography/Text';
 import withTheme from '../core/withTheme';
 import type { Theme } from '../types';
 
-const helperTextHeight = 16;
-
 type Props = {
   /**
-   * Helper text to display.
+   * Type of the helper text. One of: 'error' or 'text'. Defaults to 'info'.
    */
-  helperText?: string,
+  type: 'error' | 'info',
   /**
-   * Whether to style the TextInput with error style.
+   * Whether to display the helper text.
    */
-  hasError?: boolean,
+  visible?: boolean,
   /**
-   * @optional
-   * Text to replace the helper text with on error. If none set, will use the helperText value.
-   */
-  errorText?: string,
-  /**
-   * Text color to use.
-   */
-  color?: string,
-  /**
-   * Optional style to apply to the container.
+   * Additional style to apply to the container.
    */
   style?: any,
+  /**
+   * Text content.
+   */
+  children: React.Node,
   /**
    * @optional
    */
@@ -38,7 +31,8 @@ type Props = {
 };
 
 type State = {
-  errorShown: Animated.Value,
+  shown: Animated.Value,
+  textHeight: number,
 };
 
 /**
@@ -73,29 +67,30 @@ type State = {
  *           value={this.state.text}
  *           onChangeText={text => this.setState({ text })}
  *         />
- *         <HelperText
- *           helperText="Helper Text"
- *           errorText="Error!"
- *           hasError={this.state.text.length > 12}
- *         />
+ *         <HelperText type='info'>
+             Info text
+           </HelperText>
+ *
  *       </View>
  *     );
  *   }
  * }
  * ```
  */
-class HelperText extends React.Component<Props, State> {
+class HelperText extends React.PureComponent<Props, State> {
   static defaultProps = {
-    hasError: false,
+    type: 'info',
+    visible: true,
   };
 
   state = {
-    errorShown: new Animated.Value(this.props.hasError ? 1 : 0),
+    shown: new Animated.Value(this.props.visible ? 1 : 0),
+    textHeight: 0,
   };
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.hasError !== this.props.hasError) {
-      if (nextProps.hasError) {
+  componentDidUpdate(prevProps) {
+    if (prevProps.visible !== this.props.visible) {
+      if (this.props.visible) {
         this._animateFocus();
       } else {
         this._animateBlur();
@@ -104,97 +99,74 @@ class HelperText extends React.Component<Props, State> {
   }
 
   _animateFocus = () => {
-    Animated.timing(this.state.errorShown, {
+    Animated.timing(this.state.shown, {
       toValue: 1,
       duration: 150,
     }).start();
   };
 
   _animateBlur = () => {
-    Animated.timing(this.state.errorShown, {
+    Animated.timing(this.state.shown, {
       toValue: 0,
       duration: 180,
     }).start();
   };
 
-  getHelperTextColor(dark: boolean) {
-    return color(this.props.theme.colors.text)
-      .alpha(dark ? 0.7 : 0.54)
-      .rgb()
-      .string();
-  }
+  _getTextColor = () => {
+    const {
+      colors: { text, error },
+      dark,
+    } = this.props.theme;
+    switch (this.props.type) {
+      case 'error':
+        return error;
+      case 'info':
+      default:
+        return color(text)
+          .alpha(dark ? 0.7 : 0.54)
+          .rgb()
+          .string();
+    }
+  };
 
-  _renderText(text?: string, containerStyle: Object, textColor: string) {
-    return (
-      text && (
-        <Animated.View style={containerStyle}>
-          <Text style={[styles.helperText, { color: textColor }]}>{text}</Text>
-        </Animated.View>
-      )
-    );
-  }
+  _onTextLayout = ({ nativeEvent }) => {
+    this.setState({ textHeight: nativeEvent.layout.height });
+  };
 
   render() {
-    const {
-      helperText,
-      hasError,
-      errorText,
-      style,
-      theme,
-      color: textColor,
-    } = this.props;
-    const { colors, dark } = theme;
-    const { errorText: errorTextColor } = colors;
-
-    const helperTextColor =
-      textColor ||
-      (hasError && errorTextColor) ||
-      this.getHelperTextColor(dark);
-
-    const textWrapper = {
-      height: Animated.multiply(
-        helperTextHeight,
-        helperText ? 1 : errorText ? this.state.errorShown : 0
-      ),
-      width: '100%',
-    };
-
-    const helperTextContainer = {
-      opacity: errorText
-        ? Animated.add(1, Animated.multiply(this.state.errorShown, -1))
-        : 1,
-    };
-
-    const errorTextContainer = {
-      position: 'absolute',
-      opacity: this.state.errorShown,
-      transform: [
-        {
-          translateY: this.state.errorShown.interpolate({
-            inputRange: [0, 1],
-            outputRange: [-helperTextHeight, 0],
-          }),
-        },
-      ],
+    const { style, type, visible } = this.props;
+    const textContainerStyle = {
+      paddingVertical: 4,
+      opacity: this.state.shown,
+      transform:
+        visible && type === 'error'
+          ? [
+              {
+                translateY: this.state.shown.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-this.state.textHeight, 0],
+                }),
+              },
+            ]
+          : [],
     };
 
     return (
-      <View style={style}>
-        {helperText || errorText ? (
-          <Animated.View style={textWrapper}>
-            {this._renderText(helperText, helperTextContainer, helperTextColor)}
-            {this._renderText(errorText, errorTextContainer, errorTextColor)}
-          </Animated.View>
-        ) : null}
-      </View>
+      <Animated.View style={[textContainerStyle, style]}>
+        <Text
+          onLayout={this._onTextLayout}
+          style={[styles.text, { color: this._getTextColor() }]}
+        >
+          {this.props.children}
+        </Text>
+      </Animated.View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  helperText: {
+  text: {
     fontSize: 12,
-    marginTop: 4,
   },
 });
 
