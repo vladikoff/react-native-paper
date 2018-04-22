@@ -38,12 +38,7 @@ export default class ToolbarAction extends React.Component<Props> {
   render() {
     const { dark, icon, onPress, size, style, ...rest } = this.props;
 
-    const iconColor = dark
-      ? white
-      : color(black)
-          .alpha(0.54)
-          .rgb()
-          .string();
+    const iconColor = '#4173CE';
     const rippleColor = color(iconColor)
       .alpha(0.32)
       .rgb()
