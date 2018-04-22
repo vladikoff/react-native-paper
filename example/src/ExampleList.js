@@ -17,6 +17,7 @@ import ProgressBarExample from './ProgressBarExample';
 import RadioButtonExample from './RadioButtonExample';
 import RadioButtonGroupExample from './RadioButtonGroupExample';
 import RippleExample from './RippleExample';
+import SnackbarExample from './SnackbarExample';
 import SearchbarExample from './SearchbarExample';
 import SwitchExample from './SwitchExample';
 import TextExample from './TextExample';
@@ -43,6 +44,7 @@ export const examples = {
   radio: RadioButtonExample,
   radioGroup: RadioButtonGroupExample,
   ripple: RippleExample,
+  snackbar: SnackbarExample,
   searchbar: SearchbarExample,
   switch: SwitchExample,
   text: TextExample,
